@@ -17,48 +17,65 @@ Create Wordle
 
 List of words taken from : https://gist.github.com/dracos/dd0668f281e685bad51479e5acaadb93#file-valid-wordle-words-txt
 """
-print("Game is starting")
-
-#create a function to get a random word
 import random
+from rich import print
+
+
+print("Game is starting")
+ #create a function to get a random word
 def random_word(fName):
     words=open(fName).read().splitlines()
     return random.choice(words)
+#Create a class to store players guess
+class Wordle:
+    def __init__(self):
+        self.word=random_word("words.txt")
+        self.num_guesses=0
+        self.guess_dict={ #This stores each guess as a character array
+            0:[" "]*5,
+            1:[" "]*5,
+            2:[" "]*5,
+            3:[" "]*5,
+            4:[" "]*5,
+            5:[" "]*5
+        }
 
-#Create a function to print the board to console
-def print_board(guessWord, correctWord):
-    line="-----------"
-    empty="| | | | | |"
-    wordLine=list(empty)
+    def draw_board(self):
+        for guess in self.guess_dict.values(): #We want to access the strings inside of the guess array
+            print(" | ".join(guess)) #this puts the | in between each value
+            print("==================")
 
-    guessArray=list(guessWord)
-    correctArray=list(correctWord)
-    if (guessWord == ""):
-        #Print the empty board | This should only be called at the start of the game
-        for x in range(6):
-            print(line)
-            print(empty)
-        print(line)
-    else:
-        print()
-        """
-        * First, check if the guessed word is the correct word
-        *       If the words are equal turn the guessed word green, add it to the board, end the game
-        * Second, check each letter of the guessed word against the correct word
-        *       If the letter is in the word but in the wrong spot, turn it orange
-        *       If the letter is in the word and in the correct spot, turn the letter green
-        *       If the letter is not in the word, leave it as whie
-        """
+    def get_user_input(self): #Get the user to input their guess for a max of 6 guesses
+        user_guess=input("Enter a five letter word: ")
+        while len(user_guess) != 5:
+            user_guess=input("NOT VALID! Enter a five letter word: ")
 
-        #guess=correct
-        if (guessWord == correctWord):
-            index=1
-            for x in range(5):
-                wordLine[index]=guessArray[x]
-                index=index+2
-        print("".join(wordLine))
-    return
+        #lowercase guess
+        user_guess=user_guess.lower()
 
-print(random_word("words.txt"))   
-print_board("","hello")
-print_board("hello","hello")
+        for idx, char in enumerate(user_guess): #enumerate gives index and value
+            if(char in self.word):
+                if(char==self.word[idx]): #char in guess is in the word at the correct position
+                    char=f"[green]{char}[/]" #green
+                else: #char in guess is in the word at the wrong position
+                    char=f"[yellow]{char}[/]" #yellow
+
+            #insert the guess into the dictionary 
+            self.guess_dict[self.num_guesses][idx]=char
+        self.num_guesses += 1
+    def play(self): #Play the game
+        while(True):
+            self.draw_board()
+            user_guess=self.get_user_input()
+
+            if(user_guess==self.word):
+                self.draw_board()
+                print(f"You Won! The word was {self.word}.")
+                break
+            if(self.num_guesses>5):
+                self.draw_board()
+                print(f"You Lost. The word was {self.word}.")
+                break
+
+game=Wordle()
+game.play()
